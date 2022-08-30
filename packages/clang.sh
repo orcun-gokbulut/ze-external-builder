@@ -1,16 +1,19 @@
+#!/bin/bash
+
+# Copyright (C) 2022 Y. Orçun GÖKBULUT <orcun.gokbulut@gmail.com>
+# All rights reserved. 
+
+
 ZE_PACKAGE_NAME="clang"
 ZE_PACKAGE_DESCRIPTION="Clang compiler"
-ZE_PACKAGE_VERSION="3.5"
-ZE_PACKAGE_TYPE=$ZE_PACKAGE_TYPE_LIBRARY
+ZE_PACKAGE_VERSION="3.6.2"
+ZE_PACKAGE_TARGET="host"
 ZE_PACKAGE_REPOSITORY="https://github.com/llvm/llvm-project.git"
 ZE_PACKAGE_BRANCH="llvmorg-3.6.2"
-ZE_PACKAGE_ARCHITECTURES=("x86", "x64", "arm", "arm64")
-ZE_PACKAGE_OS=("windows", "linux", "macos")
-ZE_PACKAGE_TOOLCHAINS=("msvc", "gcc")
 
 
-function ze_package_configure() {
-    
+function ze_package_configure() 
+{    
     ze_cmake_configure \
         -S $ZE_PACKAGE_SOURCE_DIR/llvm \
         -DLLVM_EXTERNAL_CLANG_BUILD:BOOL=ON \
@@ -39,13 +42,14 @@ function ze_package_configure() {
         -DLLVM_INSTALL_TOOLCHAIN_ONLY:BOOL=OFF
 }
 
-
 function ze_package_compile() {
     ze_cmake_build
 }
 
-
 function ze_package_gather() 
 {
     ze_cmake_install
+    cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/include $ZE_PACKAGE_OUTPUT_DIR
+    cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/lib $ZE_PACKAGE_OUTPUT_DIR
+    rm -rv $ZE_PACKAGE_OUTPUT_DIR/lib/clang
 }

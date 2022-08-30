@@ -12,7 +12,8 @@
             "args": [
                 "-l",
                 "debug.log",
-                "-v"
+                "-v",
+                "info"
             ]
         }
     ]

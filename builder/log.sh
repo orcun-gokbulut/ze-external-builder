@@ -15,21 +15,22 @@ declare -r ZE_LOG_LEVEL_WARNING=4
 declare -r ZE_LOG_LEVEL_ERROR=5
 declare -r ZE_LOG_LEVEL_CRITICAL_ERROR=6
 
+
 function ze_log_initialize()
 {
-    ZE_TIMESTAMP=$(date '+%Y%m%d%H%M%S')
-    if [[ $ZE_LOG_FILE = "" ]]; then
-        mkdir -p $ZE_LOG_DIR
-        ZE_LOG_FILE=$ZE_LOG_DIR/$ZE_STRING-$ZE_TIMESTAMP-$ZE_OPERATION.log    
+    ZE_TIMESTAMP="$(date '+%Y%m%d%H%M%S')"
+    if [[ "$ZE_LOG_FILE" == "" ]]; then
+        mkdir -p "$ZE_LOG_DIR"
+        ZE_LOG_FILE="$ZE_LOG_DIR/$ZE_STRING-$ZE_TIMESTAMP-$ZE_OPERATION.log"
     fi
-    ZE_LOG_FILE=$(realpath -m "$ZE_LOG_FILE")
+    ZE_LOG_FILE="$(realpath -m "$ZE_LOG_FILE")"
 
-    if [[ $ZE_LOG_FILE != "" ]]; then
-        if  [[ -f $ZE_LOG_FILE ]]; then
-            echo "" >> $ZE_LOG_FILE
-            echo "" >> $ZE_LOG_FILE
+    if [[ "$ZE_LOG_FILE" != "" ]]; then
+        if  [[ -f "$ZE_LOG_FILE" ]]; then
+            echo "" >> "$ZE_LOG_FILE"
+            echo "" >> "$ZE_LOG_FILE"
         fi
-        echo "Start of the log - " $(date '+%d-%m-%Y %H:%M:%S') >> $ZE_LOG_FILE 
+        echo "Start of the log - " $(date '+%d-%m-%Y %H:%M:%S') >> "$ZE_LOG_FILE"
     fi
 }
 
@@ -42,7 +43,6 @@ function ze_output()
     echo $1
 }
 
-
 function ze_output_v()
 {
 
@@ -53,16 +53,14 @@ function ze_output_v()
     echo $1
 }
 
-
 function ze_output_q()
 {
     echo $1
 }
 
-
 function ze_message()
 {
-    local module=$1
+    local module="$1"
     shift 1
     local level=$1
     shift 1
@@ -118,7 +116,6 @@ function ze_message()
     echo -e "$color_white_bold[$module]$color_reset $level_color$level_text$color_reset: $message"
 }
 
-
 function ze_debug()
 {
     if [[ $ZE_DEBUG -eq 0 ]]; then
@@ -127,7 +124,6 @@ function ze_debug()
 
     ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_DEBUG $1
 }
-
 
 function ze_detail()
 {
@@ -139,7 +135,6 @@ function ze_detail()
     ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_DETAIL $1
 }
 
-
 function ze_info()
 {
     if [[ $ZE_QUIET -ne 0 ]]; then
@@ -149,24 +144,20 @@ function ze_info()
     ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_INFO $1
 }
 
-
 function ze_important()
 {
     ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_IMPORTANT $1
 }
-
 
 function ze_warning()
 {
     ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_WARNING $1
 }
 
-
 function ze_error()
 {
     ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_ERROR $1
 }
-
 
 function ze_critical()
 {

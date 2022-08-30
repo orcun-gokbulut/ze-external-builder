@@ -11,12 +11,12 @@ function ze_package_reset()
     ZE_PACKAGE_NAME=""
     ZE_PACKAGE_DESCRIPTION=""
     ZE_PACKAGE_VERSION=""
+    ZE_PACKAGE_TARGET=""
     ZE_PACKAGE_ENABLED=1
-    ZE_PACKAGE_TYPE="library"
     ZE_PACKAGE_REPOSITORY=""
     ZE_PACKAGE_BRANCH=""
-    ZE_PACKAGE_ARCHITECTURES=("x86", "x64", "arm", "arm64")
-    ZE_PACKAGE_OPERATING_SYSTEMS=("windows", "linux", "macos", "android", "ios")
+    ZE_PACKAGE_ARCHITECTURES=("x86" "x64" "arm" "arm64")
+    ZE_PACKAGE_OPERATING_SYSTEMS=("windows" "linux" "macos" "android" "ios")
     ZE_PACKAGE_TOOLCHAINS=("all")
     ZE_PACKAGE_SOURCE_DIR=""
     ZE_PACKAGE_BUILD_DIR=""
@@ -34,10 +34,9 @@ function ze_package_reset()
     ZE_MODULE_NAME="Core"
 }
 
-
 function ze_package_load()
 {
-    local package_name=$1
+    local package_name="$1"
 
     ze_package_reset
 
@@ -54,20 +53,19 @@ function ze_package_load()
         return $ZE_FAIL
     fi
 
-    ZE_MODULE_NAME=$ZE_PACKAGE_NAME
-    ZE_PACKAGE_SOURCE_DIR=$ZE_SOURCE_DIR/$ZE_PACKAGE_NAME
-    ZE_PACKAGE_BUILD_DIR=$ZE_BINARY_DIR/$ZE_STRING/$ZE_PACKAGE_NAME
-    ZE_PACKAGE_OUTPUT_DIR=$ZE_OUTPUT_DIR/$ZE_STRING/$ZE_PACKAGE_NAME
+    ZE_MODULE_NAME="$ZE_PACKAGE_NAME"
+    ZE_PACKAGE_SOURCE_DIR="$ZE_SOURCE_DIR/$ZE_PACKAGE_NAME"
+    ZE_PACKAGE_BUILD_DIR="$ZE_BUILD_DIR/$ZE_STRING/$ZE_PACKAGE_NAME"
+    ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_STRING/$ZE_PACKAGE_NAME"
 
     if [[ $ZE_SEPARATE_LOG_FILES -ne 0 ]]; then
-        ZE_PACKAGE_LOG_FILE=$ZE_LOG_DIR/$ZE_STRING-$ZE_TIMESTAMP-$ZE_PACKAGE_NAME-$ZE_OPERATION.log
+        ZE_PACKAGE_LOG_FILE="$ZE_LOG_DIR/$ZE_STRING-$ZE_TIMESTAMP-$ZE_PACKAGE_NAME-$ZE_OPERATION.log"
     else
-        ZE_PACKAGE_LOG_FILE=$ZE_LOG_FILE        
+        ZE_PACKAGE_LOG_FILE="$ZE_LOG_FILE"
     fi
 
     return $ZE_SUCCESS
 }
-
 
 function ze_external_operation_info()
 {
@@ -99,7 +97,7 @@ function ze_external_operation_info()
     ze_detail "ZE_PACKAGE_DESCRIPTION = $ZE_PACKAGE_DESCRIPTION"
     ze_detail "ZE_PACKAGE_VERSION = $ZE_PACKAGE_VERSION"
     ze_detail "ZE_PACKAGE_ENABLED = $ZE_PACKAGE_ENABLED"
-    ze_detail "ZE_PACKAGE_TYPE = $ZE_PACKAGE_TYPE"
+    ze_detail "ZE_PACKAGE_TARGET = $ZE_PACKAGE_TARGET"
     ze_detail "ZE_PACKAGE_REPOSITORY = $ZE_PACKAGE_REPOSITORY"
     ze_detail "ZE_PACKAGE_BRANCH = $ZE_PACKAGE_BRANCH"
     ze_detail "ZE_PACKAGE_OPERATING_SYSTEMS = $ZE_PACKAGE_OPERATING_SYSTEMS_TEXT"
@@ -113,7 +111,6 @@ function ze_external_operation_info()
 
     return $ZE_SUCCESS
 }
-
 
 function ze_external_operation_bootstrap()
 {
@@ -147,7 +144,6 @@ function ze_external_operation_clone()
     return $ZE_SUCCESS
 }
 
-
 function ze_external_operation_clean()
 {
     ze_info "Cleaning pacakge $ZE_PACKAGE_NAME..."
@@ -158,8 +154,8 @@ function ze_external_operation_clean()
         return $ZE_FAIL
     fi
 
-    rm -rfv $ZE_PACKAGE_BUILD_DIR
-    rm -rfv $ZE_PACKAGE_OUTPUT_DIR
+    rm -rfv "$ZE_PACKAGE_BUILD_DIR"
+    rm -rfv "$ZE_PACKAGE_OUTPUT_DIR"
 
     ze_info "Package '$ZE_PACKAGE_NAME' has been cleaned succesfully."
 
@@ -171,9 +167,8 @@ function ze_external_operation_configure()
 {
     ze_info "Configuring pacakge '$ZE_PACKAGE_NAME'..."
 
-    mkdir -p $ZE_PACKAGE_BUILD_DIR
-    mkdir -p $ZE_PACKAGE_OUTPUT_DIR
-    cd $ZE_PACKAGE_BUILD_DIR
+    mkdir -p "$ZE_PACKAGE_BUILD_DIR"
+    cd "$ZE_PACKAGE_BUILD_DIR"
 
     ze_package_configure
     if [[ $? -ne 0 ]]; then
@@ -190,9 +185,8 @@ function ze_external_operation_compile()
 {
     ze_info "Compiling package '$ZE_PACKAGE_NAME'..."
 
-    mkdir -p $ZE_PACKAGE_BUILD_DIR
-    mkdir -p $ZE_PACKAGE_OUTPUT_DIR
-    cd $ZE_PACKAGE_BUILD_DIR
+    mkdir -p "$ZE_PACKAGE_BUILD_DIR"
+    cd "$ZE_PACKAGE_BUILD_DIR"
 
     ze_package_compile
     if [[ $? -ne 0 ]]; then
@@ -210,8 +204,8 @@ function ze_external_operation_gather()
 {
     ze_info "Gathering output of package '$ZE_PACKAGE_NAME'..."
 
-    cd $ZE_PACKAGE_OUTPUT_DIR
-    mkdir -p $ZE_PACKAGE_OUTPUT_DIR
+    mkdir -p "$ZE_PACKAGE_OUTPUT_DIR"
+    cd "$ZE_PACKAGE_OUTPUT_DIR"
 
     ze_package_gather
     if [[ $? -ne 0 ]]; then
@@ -229,7 +223,7 @@ function ze_external_operation_generate_package_info()
 {
     ze_info "Generating package information of package '$ZE_PACKAGE_NAME'..."
 
-    mkdir -p $ZE_PACKAGE_OUTPUT_DIR
+    mkdir -p "$ZE_PACKAGE_OUTPUT_DIR"
     echo "Version: $ZE_PACKAGE_VERSION" > "$ZE_PACKAGE_OUTPUT_DIR/ze_package_version.txt"
     echo "Repository: $ZE_PACKAGE_REPOSITORY" >> "$ZE_PACKAGE_OUTPUT_DIR/ze_package_version.txt"
     echo "Branch: $ZE_PACKAGE_BRANCH" >> "$ZE_PACKAGE_OUTPUT_DIR/ze_package_version.txt"
@@ -244,12 +238,6 @@ function ze_external_operation_build()
     ze_info "Building pacakge '$ZE_PACKAGE_NAME'..."
 
     ze_external_operation_clone
-    if [[ $? -ne 0 ]]; then
-        ze_error "Building of pacakge '$ZE_PACKAGE_NAME' has been FAILDED."
-        return $ZE_FAIL
-    fi
-
-    ze_external_operation_clean
     if [[ $? -ne 0 ]]; then
         ze_error "Building of pacakge '$ZE_PACKAGE_NAME' has been FAILDED."
         return $ZE_FAIL
@@ -288,7 +276,7 @@ function ze_external_operation_list()
 }
 
 
-function ze_external_process_redirected()
+function ze_external_process()
 {
     ze_external_operation_info
 
@@ -326,7 +314,7 @@ function ze_external_process_redirected()
             ze_external_operation_gather
             result=$?
             ;;
-        generate-package-info)
+        generate-info)
             ze_external_operation_generate_package_info
             result=$?
             ;;
@@ -360,44 +348,48 @@ function ze_external_process_redirected()
     return $ZE_SUCCESS
 }
 
-
-function ze_external_process()
-{
-    if [[ $ZE_FILTER_MODE = "INCLUDE" ]]; then
-        FOUND=0
-        for CURRENT in "${ZE_INCLUDED[@]}" ; do
-            if [ $CURRENT = $1 ] ; then
-                FOUND=1
-                break
-            fi
-        done
-
-        if [[ $FOUND -eq 0 ]]; then
-            ze_log_c "SKIPPING external $ZE_PACKAGE_NAME."
-            return
-        fi
-    elif [[ $ZE_FILTER_MODE = "EXCLUDE" ]]; then
-        for CURRENT in "${ZE_EXCLUDED[@]}" ; do
-            if [[ $CURRENT = $1 ]]; then
-                ze_log_c "SKIPPING external $ZE_PACKAGE_NAME."
-                return
-            fi
-        done
-    fi
-
-    ze_package_load $1
-    if [[ $? -ne 0 ]]; then        
-        if [[ $ZE_STOP_ON_ERROR -eq 0 ]]; then
-            exit $ZE_FAIL
+function ze_external_process_pacakges() {
+    local result_sum=0
+    for file in $ZE_PACKAGES_ROOT_DIR/*.sh ; do
+        if [[ -d $file ]]; then
+            continue
         fi
 
-        ze_package_reset
-        return $ZE_FAIL
-    fi
+        local package_name=$(basename -s ".sh" $file)
 
-    if [[ $ZE_VERBOSE -ne 0 ]]; then
-        ze_external_process_redirected $1 2>&1 | tee -a $ZE_PACKAGE_LOG_FILE
-    else
-        ze_external_process_redirected $1 2>&1 >> $ZE_PACKAGE_LOG_FILE
-    fi
+        ze_package_load "$package_name"
+        if [[ $? -ne 0 ]]; then
+            if [[ $ZE_STOP_ON_ERROR -eq 0 ]]; then
+                exit $ZE_FAIL
+            fi
+
+            ze_package_reset
+            return $ZE_FAIL
+        fi
+
+        if [[ $ZE_PACKAGE_ENABLED -eq 0 ]]; then
+            ze_detail "Skipping disabled pacakge $ZE_PACAKGE_NAME."
+            return $ZE_SUCCESS
+        fi
+
+        ze_info "Processing package '$ZE_PACKAGE_NAME'..."
+        local result=0
+        if [[ $ZE_VERBOSE -ne 0 ]]; then
+            ze_external_process 2>&1 | tee -a "$ZE_PACKAGE_LOG_FILE"
+            result=$?
+
+        else
+            ze_external_process 2>&1 >> "$ZE_PACKAGE_LOG_FILE"
+            result=$?
+        fi
+
+        if [[ $result -ne 0 ]]; then
+            ze_info "Processing package '$package_name' has been failed."
+            result_sum=1
+        else
+            ze_info "Package '$package_name' has been processed succesfully."
+        fi
+    done
+    
+    exit $result_sum
 }

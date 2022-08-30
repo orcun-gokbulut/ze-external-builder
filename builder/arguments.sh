@@ -4,16 +4,16 @@
 # All rights reserved. 
 
 
-ZE_SCRIPT_FILENAME=external-builder.sh
-ZE_PLATFORM=${ZE_PLATFORM:-$(uname -s | tr '[:upper:]' '[:lower:]')}
-ZE_ARCHITECTURE=${ZE_ARCHITECTURE:-$(uname -p | tr '[:upper:]' '[:lower:]')}
-ZE_TOOLCHAIN=${ZE_TOOLCHAIN:-gcc$(cc -dumpversion | tr '[:upper:]' '[:lower:]')}
-ZE_BUILD_TYPE=${ZE_BUILD_TYPE:-release}
-ZE_SOURCE_DIR=$ZE_ROOT_DIR/source
-ZE_BINARY_DIR=${ZE_BINARY_DIR:-$ZE_ROOT_DIR/build}
-ZE_OUTPUT_DIR=${ZE_OUTPUT_DIR:-$ZE_ROOT_DIR/output}
+ZE_SCRIPT_FILENAME="external-builder.sh"
+ZE_PLATFORM="${ZE_PLATFORM:-$(uname -s | tr '[:upper:]' '[:lower:]')}"
+ZE_ARCHITECTURE="${ZE_ARCHITECTURE:-$(uname -p | tr '[:upper:]' '[:lower:]')}"
+ZE_TOOLCHAIN="${ZE_TOOLCHAIN:-gcc$(cc -dumpversion | tr '[:upper:]' '[:lower:]')}"
+ZE_BUILD_TYPE="${ZE_BUILD_TYPE:-release}"
+ZE_SOURCE_DIR="$ZE_ROOT_DIR/source"
+ZE_BUILD_DIR="$ZE_ROOT_DIR/build"
+ZE_OUTPUT_DIR="$ZE_ROOT_DIR/output"
 ZE_LOG_ENABLED=1
-ZE_LOG_DIR=${ZE_LOG_DIR:-$ZE_ROOT_DIR/log}
+ZE_LOG_DIR="$ZE_ROOT_DIR/log"
 ZE_LOG_FILE=""
 ZE_SEPARATE_LOG_FILES=0
 ZE_FILTER_MODE="all"
@@ -22,7 +22,7 @@ ZE_EXCLUDED=()
 ZE_QUIET=0
 ZE_VERBOSE=0
 ZE_STOP_ON_ERROR=0
-ZE_OPERATION=compile
+ZE_OPERATION="compile"
 
 function ze_arguments_error()
 {
@@ -76,6 +76,7 @@ function ze_arguments_usage()
     echo "  generate-info      Generates package information files."
     echo "  list               Lists externals."
     echo "  info               Prints verbose information about externals."
+    echo "  full-clean         Deletes all generated or cloned files and directories."
     echo ""
     echo "Options:"
     echo "  -o, --operating-system <os name>    Sets target operating system name."
@@ -152,7 +153,7 @@ function ze_arguments_parse()
             -t | --toolchain) ZE_TOOLCHAIN="$2" ; shift 2 ;;
             -b | --build-type) ZE_BUILD_TYPE="$2" ; shift 2 ;;
             --output-dir) ZE_OUTPUT_DIR="$2" ; shift 2 ;;
-            --build-dir) ZE_BINARY_DIR="$2" ; shift 2 ;;
+            --build-dir) ZE_BUILD_DIR="$2" ; shift 2 ;;
             --log-dir) ZE_LOG_DIR="$2" ; shift 2 ;;
             -l | --log-file) ZE_LOG_FILE="$2" ; shift 2 ;;
             -s | --separate-log-files) ZE_SEPARATE_LOG_FILES=1 ; shift 1 ;;
@@ -203,6 +204,7 @@ function ze_arguments_parse()
         [[ "$ZE_OPERATION" != "generate-info" ]] &&
         [[ "$ZE_OPERATION" != "list" ]] &&
         [[ "$ZE_OPERATION" != "info" ]] &&
+        [[ "$ZE_OPERATION" != "full-clean" ]] &&
         [[ "$ZE_OPERATION" != "none" ]] &&
         [[ "$ZE_OPERATION" != "" ]]; then
         ze_arguments_error "Unknown operation: \"$ZE_OPERATION\"."
@@ -228,7 +230,7 @@ function ze_arguments_parse()
     ZE_STRING="$ZE_PLATFORM-$ZE_ARCHITECTURE-$ZE_TOOLCHAIN-$ZE_BUILD_TYPE"
 
     # Normalize Paths
-    ZE_BINARY_DIR=$(realpath -m "$ZE_BINARY_DIR")
+    ZE_BUILD_DIR=$(realpath -m "$ZE_BUILD_DIR")
     ZE_OUTPUT_DIR=$(realpath -m "$ZE_OUTPUT_DIR")
     ZE_LOG_DIR=$(realpath -m "$ZE_LOG_DIR")
 }

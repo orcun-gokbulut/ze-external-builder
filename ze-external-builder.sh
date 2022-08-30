@@ -8,7 +8,8 @@ ZE_SCRIPT_PATH=$(realpath "$ZE_SCRIPT_PATH_TEMP")
 ZE_ROOT_DIR_TEMP=$(dirname "$ZE_SCRIPT_PATH")
 ZE_ROOT_DIR=$(realpath -m "$ZE_ROOT_DIR_TEMP")
 ZE_SCRIPT_FILENAME=$(basename "$BASH_SOURCE")
-ZE_DEBUG=1
 ZE_VERSION="0.1"
+ZE_DEBUG=1
 
-source "builder/main.sh" $@
+source "builder/main.sh"
+ze_main $@
