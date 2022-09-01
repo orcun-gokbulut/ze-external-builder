@@ -12,15 +12,18 @@ function ze_package_reset()
     ZE_PACKAGE_DESCRIPTION=""
     ZE_PACKAGE_VERSION=""
     ZE_PACKAGE_TARGET=""
+    ZE_PACKAGE_TYPE="library"
     ZE_PACKAGE_ENABLED=1
     ZE_PACKAGE_REPOSITORY=""
     ZE_PACKAGE_BRANCH=""
-    ZE_PACKAGE_ARCHITECTURES=("x86" "x64" "arm" "arm64")
-    ZE_PACKAGE_OPERATING_SYSTEMS=("windows" "linux" "macos" "android" "ios")
-    ZE_PACKAGE_TOOLCHAINS=("all")
+    ZE_PACKAGE_ARCHITECTURES=()
+    ZE_PACKAGE_OPERATING_SYSTEMS=()
+    ZE_PACKAGE_TOOLCHAINS=()
+    ZE_PACKAGE_BUILD_TYPE=""
     ZE_PACKAGE_SOURCE_DIR=""
     ZE_PACKAGE_BUILD_DIR=""
     ZE_PACKAGE_OUTPUT_DIR=""
+    ZE_PACKAGE_REGISTRATION_FILE=""
     ZE_PACKAGE_LOG_FILE=""
 
     eval "function ze_package_check() { ze_package_check_default ; return $? ; }"
@@ -30,7 +33,8 @@ function ze_package_reset()
     eval "function ze_package_configure() { ze_package_configure_default ; return $? ; }"
     eval "function ze_package_compile() { ze_package_compile_default ; return $? ; }"
     eval "function ze_package_gather() { ze_package_gather_default ; return $? ; }"
-
+    eval "function ze_package_generate_registration() { ze_package_generate_registration_default ; return $? ; }"
+    
     ZE_MODULE_NAME="Core"
 }
 
@@ -54,12 +58,19 @@ function ze_package_load()
     fi
 
     ZE_MODULE_NAME="$ZE_PACKAGE_NAME"
+    ZE_PACKAGE_TIMESTAMP="$ZE_TIMESTAMP"
     ZE_PACKAGE_SOURCE_DIR="$ZE_SOURCE_DIR/$ZE_PACKAGE_NAME"
-    ZE_PACKAGE_BUILD_DIR="$ZE_BUILD_DIR/$ZE_STRING/$ZE_PACKAGE_NAME"
-    ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_STRING/$ZE_PACKAGE_NAME"
+    ZE_PACKAGE_BUILD_DIR="$ZE_BUILD_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME/$ZE_PACKAGE_BUILD_TYPE"
+    ZE_PACKAGE_REGISTRATION_FILE="$ZE_OUTPUT_DIR/$ZE_PLATFORM/CMakeLists.txt"
+
+    if [[ ZE_PACKAGE_TYPE == "universal " ]]; then
+        ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME"
+    else
+        ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME/$ZE_PACKAGE_BUILD_TYPE"
+    fi
 
     if [[ $ZE_SEPARATE_LOG_FILES -ne 0 ]]; then
-        ZE_PACKAGE_LOG_FILE="$ZE_LOG_DIR/$ZE_STRING-$ZE_TIMESTAMP-$ZE_PACKAGE_NAME-$ZE_OPERATION.log"
+        ZE_PACKAGE_LOG_FILE="$ZE_LOG_DIR/$ZE_PLATFORM-$ZE_PACKAGE_TIMESTAMP-$ZE_PACKAGE_NAME-$ZE_OPERATION.log"
     else
         ZE_PACKAGE_LOG_FILE="$ZE_LOG_FILE"
     fi
@@ -97,12 +108,15 @@ function ze_external_operation_info()
     ze_detail "ZE_PACKAGE_DESCRIPTION = $ZE_PACKAGE_DESCRIPTION"
     ze_detail "ZE_PACKAGE_VERSION = $ZE_PACKAGE_VERSION"
     ze_detail "ZE_PACKAGE_ENABLED = $ZE_PACKAGE_ENABLED"
+    ze_detail "ZE_PACKAGE_TYPE = $ZE_PACKAGE_TYPE"
     ze_detail "ZE_PACKAGE_TARGET = $ZE_PACKAGE_TARGET"
     ze_detail "ZE_PACKAGE_REPOSITORY = $ZE_PACKAGE_REPOSITORY"
     ze_detail "ZE_PACKAGE_BRANCH = $ZE_PACKAGE_BRANCH"
     ze_detail "ZE_PACKAGE_OPERATING_SYSTEMS = $ZE_PACKAGE_OPERATING_SYSTEMS_TEXT"
     ze_detail "ZE_PACKAGE_ARCHITECTURES = $ZE_PACKAGE_ARCHITECTURES_TEXT"
     ze_detail "ZE_PACKAGE_TOOLCHAINS = $ZE_PACKAGE_TOOLCHAINS_TEXT"
+    ze_detail "ZE_PACKAGE_BUILD_TARGET = $ZE_PACKAGE_BUILD_TARGET"
+    ze_detail "ZE_PACKAGE_BUILD_TYPE = $ZE_PACKAGE_BUILD_TYPE"
     ze_detail "ZE_PACKAGE_SOURCE_DIR = $ZE_PACKAGE_SOURCE_DIR"
     ze_detail "ZE_PACKAGE_BUILD_DIR = $ZE_PACKAGE_BUILD_DIR"
     ze_detail "ZE_PACKAGE_OUTPUT_DIR = $ZE_PACKAGE_OUTPUT_DIR"
@@ -233,6 +247,19 @@ function ze_external_operation_generate_package_info()
     return $ZE_SUCCESS
 }
 
+function ze_external_operation_generate_registration()
+{
+    ze_info "Generating registeration of package '$ZE_PACKAGE_NAME'..."
+
+    mkdir -p "$ZE_PACKAGE_OUTPUT_DIR"
+    ze_package_generate_registration
+
+    ze_info "Registration of package '$ZE_PACKAGE_NAME' has been generated succesfully."
+
+    return $ZE_SUCCESS
+}
+
+
 function ze_external_operation_build() 
 {
     ze_info "Building pacakge '$ZE_PACKAGE_NAME'..."
@@ -276,28 +303,55 @@ function ze_external_operation_list()
 }
 
 
-function ze_external_process()
+function ze_external_process_route()
 {
-    ze_external_operation_info
-
-    ze_package_check
-    if [[ $? -ne 0 ]]; then
-        ze_detail "Package check with current configuration has been failed. Skipping package."
-
-        ze_package_reset
-        return $ZE_SUCCESS
-    fi
-
     local result=""
     case "$ZE_OPERATION" in
         bootstrap)
-            ze_external_operation_clean
+            ze_external_operation_bootstrap
             result=$?
             ;;
         clone)
             ze_external_operation_clone
             result=$?
             ;;
+        generate-info)
+            ze_external_operation_generate_package_info
+            result=$?
+            ;;
+        generate-registration)
+            ze_external_operation_generate_registration
+            result=$?
+            ;;
+        list)
+            ze_external_operation_list
+            result=$?
+            ;;
+        info)
+            local verbose_old=$ZE_VERBOSE
+            ZE_VERBOSE=1
+            ze_external_operation_info
+            result=$?            
+            ZE_VERBOSE=$verbose_old
+            ;;
+        none)
+            ze_info "Traversing external $ZE_PACKAGE_NAME."
+            result=0
+            ;;
+        *)
+            return $ZE_SUCCESS
+            ;;
+    esac
+
+    if [[ $result -ne 0 && $ZE_STOP_ON_ERROR -eq 0 ]]; then
+        exit $ZE_FAIL
+    fi
+}
+
+function ze_external_process_route()
+{
+    local result=""
+    case "$ZE_OPERATION" in
         clean)
             ze_external_operation_clean
             result=$?
@@ -314,38 +368,31 @@ function ze_external_process()
             ze_external_operation_gather
             result=$?
             ;;
-        generate-info)
-            ze_external_operation_generate_package_info
-            result=$?
-            ;;
-        build)
-            ze_external_operation_build
-            result=$?
-            ;;
-        list)
-            ze_external_operation_list
-            result=$?
-            ;;
-        info)
-            local verbose_old=$ZE_VERBOSE
-            ZE_VERBOSE=1
-
-            ze_external_operation_info
-            result=$?
-            
-            ZE_VERBOSE=$verbose_old
-            ;;
-        none)
-            ze_info "Traversing external $ZE_PACKAGE_NAME."
+        *)
+            return $ZE_SUCCESS
             ;;
     esac
 
     if [[ $result -ne 0 && $ZE_STOP_ON_ERROR -eq 0 ]]; then
         exit $ZE_FAIL
     fi
+}
 
-    ze_package_reset
-    return $ZE_SUCCESS
+function ze_external_process_package() 
+{
+    ze_external_operation_info
+
+    local result=0
+    if [[ $ZE_VERBOSE -ne 0 ]]; then
+        ze_external_process_route 2>&1 | tee -a "$ZE_PACKAGE_LOG_FILE"
+        result=$?
+
+    else
+        ze_external_process_route 2>&1 >> "$ZE_PACKAGE_LOG_FILE"
+        result=$?
+    fi
+
+    return $result
 }
 
 function ze_external_process_pacakges() {
@@ -368,22 +415,62 @@ function ze_external_process_pacakges() {
         fi
 
         if [[ $ZE_PACKAGE_ENABLED -eq 0 ]]; then
-            ze_detail "Skipping disabled pacakge $ZE_PACAKGE_NAME."
+            ze_detail "Skipping disabled pacakge $ZE_PACKAGE_NAME."
             return $ZE_SUCCESS
         fi
 
-        ze_info "Processing package '$ZE_PACKAGE_NAME'..."
-        local result=0
-        if [[ $ZE_VERBOSE -ne 0 ]]; then
-            ze_external_process 2>&1 | tee -a "$ZE_PACKAGE_LOG_FILE"
-            result=$?
-
-        else
-            ze_external_process 2>&1 >> "$ZE_PACKAGE_LOG_FILE"
-            result=$?
+        ze_platform_check
+        if [[ $? -ne 0 ]]; then
+            ze_detail "Skipping platform incompatible pacakge $ZE_PACKAGE_NAME."
+            return $ZE_SUCCESS
         fi
 
-        if [[ $result -ne 0 ]]; then
+        ze_package_check
+        if [[ $? -ne 0 ]]; then
+            ze_detail "Package check with current configuration has been failed. Skipping package."
+            return $ZE_SUCCESS
+        fi
+        
+        local package_result=0
+        ze_info "Processing package '$ZE_PACKAGE_NAME'..."
+
+        ze_external_process_route_generic
+
+        if [[ $ZE_PACKAGE_TYPE == "universal" ]]; then
+            # UNIVERSAL BUILD
+            ZE_PACKAGE_BUILD_TYPE=""
+            ze_external_process_route
+        else
+            if [[ $ZE_BUILD_TYPE == "both" ]]; then
+                # RELEASE BUILD
+                ZE_PACKAGE_BUILD_TYPE="release"
+                ze_info "Processing release configuration..."
+                ze_external_process_route
+                if [[ $? -ne 0 ]]; then
+                    ze_info "Processing package '$ZE_PACKAGE_NAME' in "$ configuration has been failed."
+                    package_result=1
+                else
+                    ze_info "Package '$ZE_PACKAGE_NAME' in debug configuration has been processed succesfully."
+                fi
+
+                #DEBUG BUILD
+                ze_info "Processing package '$ZE_PACKAGE_NAME' in debug configuration..."
+                ZE_PACKAGE_BUILD_TYPE="debug"
+                ze_external_process_route
+                if [[ $? -ne 0 ]]; then
+                    ze_info "Processing package '$ZE_PACKAGE_NAME' in debug configuration has been failed."
+                    package_result=1
+                else
+                    ze_info "Package '$ZE_PACKAGE_NAME' in debug configuration has been processed succesfully."
+                fi
+            else
+                # SELECTIVE BUILD
+                ZE_PACKAGE_BUILD_TYPE="$ZE_BUILD_TYPE"
+                ze_external_process_route
+            fi
+        fi
+
+        if [[ $package_result -ne 0 ]]; then
             ze_info "Processing package '$package_name' has been failed."
             result_sum=1
         else

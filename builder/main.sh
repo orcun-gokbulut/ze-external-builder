@@ -16,9 +16,13 @@ function ze_main()
     source "$ZE_BUILDER_ROOT_DIR/arguments.sh"
     source "$ZE_BUILDER_ROOT_DIR/packages.sh"
     source "$ZE_BUILDER_ROOT_DIR/package-defaults.sh"
+    source "$ZE_BUILDER_ROOT_DIR/platform.sh"
     source "$ZE_BUILDER_ROOT_DIR/cmake.sh"
 
+    ze_platform_detect
     ze_arguments_parse $@
+    ze_platform_normalize_toolset
+
     ze_log_initialize
 
     ze_info "Zinek Engine External Builder - Version: $ZE_VERSION"
@@ -36,10 +40,15 @@ function ze_main()
     ze_detail "ZE_BUILDER_ROOT_DIR = $ZE_BUILDER_ROOT_DIR"
     ze_detail "ZE_SCRIPT_PATH = $ZE_SCRIPT_PATH"
     ze_detail "ZE_SCRIPT_FILENAME = $ZE_SCRIPT_FILENAME"
-    ze_detail "ZE_STRING = $ZE_STRING"
     ze_detail "ZE_PLATFORM = $ZE_PLATFORM"
+    ze_detail "ZE_OPERATIONG_SYSTEM = $ZE_OPERATING_SYSTEM"
     ze_detail "ZE_ARCHITECTURE = $ZE_ARCHITECTURE"
     ze_detail "ZE_TOOLCHAIN = $ZE_TOOLCHAIN"
+    ze_detail "ZE_COMPILER = $ZE_COMPILER"
+    ze_detail "ZE_COMPILER_VERSION = $ZE_COMPILER_VERSION"
+    ze_detail "ZE_C_COMPILER = $ZE_C_COMPILER"
+    ze_detail "ZE_CXX_COMPILER = $ZE_CXX_COMPILER"
+    ze_detail "ZE_CMAKE_TOOLCHAIN = $ZE_CMAKE_TOOLCHAIN"
     ze_detail "ZE_BUILD_TYPE = $ZE_BUILD_TYPE"
     ze_detail "ZE_SOURCE_DIR = $ZE_SOURCE_DIR"
     ze_detail "ZE_BUILD_DIR = $ZE_BUILD_DIR"

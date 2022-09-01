@@ -21,7 +21,7 @@ function ze_log_initialize()
     ZE_TIMESTAMP="$(date '+%Y%m%d%H%M%S')"
     if [[ "$ZE_LOG_FILE" == "" ]]; then
         mkdir -p "$ZE_LOG_DIR"
-        ZE_LOG_FILE="$ZE_LOG_DIR/$ZE_STRING-$ZE_TIMESTAMP-$ZE_OPERATION.log"
+        ZE_LOG_FILE="$ZE_LOG_DIR/$ZE_PLATFORM-$ZE_TIMESTAMP-$ZE_OPERATION.log"
     fi
     ZE_LOG_FILE="$(realpath -m "$ZE_LOG_FILE")"
 

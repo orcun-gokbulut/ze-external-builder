@@ -6,12 +6,18 @@
 
 function ze_cmake_configure() 
 {
-    ze_exec cmake \
+    local compiler_override=""
+    if [[ "$ZE_C_COMPILER" != "" ]]; then
+        compiler_override="CC=$ZE_C_COMPILER CXX=$ZE_CXX_COMPILER"
+    fi
+
+    ze_exec $compiler_override cmake \
         -Wno-dev \
         -S "$ZE_PACKAGE_SOURCE_DIR" \
         -B "$ZE_PACKAGE_BUILD_DIR" \
         -D CMAKE_BUILD_TYPE:BOOL="$ZE_BUILD_TYPE" \
         -D CMAKE_INSTALL_PREFIX:PATH="$ZE_PACKAGE_BUILD_DIR/ze_build_install" \
+        $ZE_CMAKE_TOOLCHAIN
         $@ 
 }
 

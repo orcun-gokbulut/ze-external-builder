@@ -13,7 +13,7 @@
                 "-l",
                 "debug.log",
                 "-v",
-                "info"
+                "generate-registration"
             ]
         }
     ]
