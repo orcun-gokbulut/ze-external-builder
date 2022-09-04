@@ -14,18 +14,22 @@ ZE_PACKAGE_BRANCH="3.18"
 
 function ze_package_configure() 
 {
-    ze_cmake_configure 
+    ze_cmake_configure
+    return $?
 }
 
 function ze_package_compile() {
     ze_cmake_build
+    return $?
 }
 
 function ze_package_gather() 
 {
-    ze_exec mkdir -p "$ZE_PACKAGE_OUTPUT_DIR/lib"
-    ze_exec cp -v "$ZE_PACKAGE_BUILD_DIR/libFreeImage$ZE_STATIC_LIBRARY_EXTENSION $ZE_PACKAGE_OUTPUT_DIR/lib"
+    ze_exec mkdir -p "$ZE_PACKAGE_OUTPUT_DIR/lib" || return $ZE_FAIL
+    ze_exec cp -v "$ZE_PACKAGE_BUILD_DIR/libFreeImage$ZE_STATIC_LIBRARY_EXTENSION $ZE_PACKAGE_OUTPUT_DIR/lib" || return $ZE_FAIL
 
-    ze_exec mkdir -p "$ZE_PACKAGE_OUTPUT_DIR/include"
-    ze_exec cp -v "$ZE_PACKAGE_SOURCE_DIR/Source/FreeImage.h" "$ZE_PACKAGE_OUTPUT_DIR/include"
+    ze_exec mkdir -p "$ZE_PACKAGE_OUTPUT_DIR/include" || return $ZE_FAIL
+    ze_exec cp -v "$ZE_PACKAGE_SOURCE_DIR/Source/FreeImage.h" "$ZE_PACKAGE_OUTPUT_DIR/include" || return $ZE_FAIL
+
+    return $ZE_SUCCESS
 }

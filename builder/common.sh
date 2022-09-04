@@ -8,6 +8,7 @@ function ze_exec() {
     local command="$@"
     ze_detail "Executing command: $command"
     eval $@
+    return $?
 }
 
 ZE_STATIC_LIBRARY_EXTENSION=".a"

@@ -13,12 +13,13 @@ function ze_main()
 
     source "$ZE_BUILDER_ROOT_DIR/log.sh"
     source "$ZE_BUILDER_ROOT_DIR/common.sh"
-    source "$ZE_BUILDER_ROOT_DIR/arguments.sh"
-    source "$ZE_BUILDER_ROOT_DIR/packages.sh"
-    source "$ZE_BUILDER_ROOT_DIR/package-defaults.sh"
     source "$ZE_BUILDER_ROOT_DIR/platform.sh"
     source "$ZE_BUILDER_ROOT_DIR/cmake.sh"
-
+    source "$ZE_BUILDER_ROOT_DIR/arguments.sh"
+    source "$ZE_BUILDER_ROOT_DIR/packages.sh"
+    source "$ZE_BUILDER_ROOT_DIR/packages-defaults.sh"
+    source "$ZE_BUILDER_ROOT_DIR/operations.sh"
+  
     ze_platform_detect
     ze_arguments_parse $@
     ze_platform_normalize_toolset
@@ -67,17 +68,16 @@ function ze_main()
 
     case "$ZE_OPERATION" in
         full-clean)
-            ze_log "Clearing everthing..."
+            ze_info "Clearing everthing..."
             rm -rfv build
             rm -rfv log
             rm -rfv source
             rm -rfv output
-            ze_log "Done"
             exit $ZE_SUCCESS
             ;;
     esac
 
-    ze_external_process_pacakges
+    ze_package_process
     local result=$?
     exit $result
 }

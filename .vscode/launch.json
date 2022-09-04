@@ -10,10 +10,9 @@
             "name": "Bash-Debug (simplest configuration)",
             "program": "${workspaceFolder}/ze-external-builder.sh",
             "args": [
-                "-l",
-                "debug.log",
                 "-v",
-                "generate-registration"
+                "-l", "debug.log",
+                "-i", "lemon"
             ]
         }
     ]

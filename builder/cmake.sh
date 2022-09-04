@@ -15,18 +15,21 @@ function ze_cmake_configure()
         -Wno-dev \
         -S "$ZE_PACKAGE_SOURCE_DIR" \
         -B "$ZE_PACKAGE_BUILD_DIR" \
-        -D CMAKE_BUILD_TYPE:BOOL="$ZE_BUILD_TYPE" \
+        -D CMAKE_BUILD_TYPE:STRING="$ZE_PACKAGE_BUILD_TYPE" \
         -D CMAKE_INSTALL_PREFIX:PATH="$ZE_PACKAGE_BUILD_DIR/ze_build_install" \
-        $ZE_CMAKE_TOOLCHAIN
+        $ZE_CMAKE_TOOLCHAIN \
         $@ 
+    return $?
 }
 
 function ze_cmake_build()
 {
     ze_exec MAKEFLAGS=-j$(nproc) cmake --build $ZE_PACKAGE_BUILD_DIR
+    return $?
 }
 
 function ze_cmake_install()
 {
     ze_exec cmake --install $ZE_PACKAGE_BUILD_DIR
+    return $?
 }

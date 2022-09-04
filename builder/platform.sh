@@ -59,6 +59,7 @@ function ze_platform_normalize_toolset()
         "gcc")
             ZE_COMPILER="gcc"
             ZE_COMPILER_VERSION="$(gcc -dumpversion)"
+            ZE_TOOLCHAIN="$ZE_COMPILER$ZE_COMPILER_VERSION"
             ;;
         "gcc7")
             ZE_COMPILER="gcc"
@@ -79,6 +80,7 @@ function ze_platform_normalize_toolset()
         "clang")
             ZE_COMPILER="clang"
             ZE_COMPILER_VERSION="$(clang -dumpversion | sed -nr 's/^([0-9]+)\..*$/\1/p')"
+            ZE_TOOLCHAIN="$ZE_COMPILER$ZE_COMPILER_VERSION"
             ;;
         "clang5")
             ZE_COMPILER="clang"
@@ -113,35 +115,36 @@ function ze_platform_normalize_toolset()
             ZE_COMPILER_VERSION="12"
             ;;
         "msvc")
-            ZE_COMPILER="msvc143"
+            ZE_COMPILER="msvc"
             ZE_VERSION="143"
+            ZE_TOOLCHAIN="$ZE_COMPILER$ZE_COMPILER_VERSION"
             ;;
         "msvc110")
-            ZE_COMPILER="msvc110"
+            ZE_COMPILER="msvc"
             ZE_VERSION="110"
             ;;
         "msvc120")
-            ZE_COMPILER="msvc120"
+            ZE_COMPILER="msvc"
             ZE_VERSION="120"
             ;;
         "msvc130")
-            ZE_COMPILER="msvc130"
+            ZE_COMPILER="msvc"
             ZE_VERSION="130"
             ;;
         "msvc140")
-            ZE_COMPILER="msvc140"
+            ZE_COMPILER="msvc"
             ZE_VERSION="140"
             ;;
         "msvc141")
-            ZE_COMPILER="msvc141"
+            ZE_COMPILER="msvc"
             ZE_VERSION="141"
             ;;
         "msvc142")
-            ZE_COMPILER="msvc142"
+            ZE_COMPILER="msvc"
             ZE_VERSION="142"
             ;;
         "msvc143")
-            ZE_COMPILER="msvc143"
+            ZE_COMPILER="msvc"
             ZE_VERSION="143"
             ;;
     esac
@@ -202,27 +205,32 @@ function ze_platform_normalize_toolset()
 
 function ze_platform_check()
 {
-    local found=0;
-    for arch in "${ZE_PACKAGE_ARCHITECTURES[@]}" ; do
-        if [[ "$arch" == "$ZE_ARCHITECTURE" ]]; then
-            found=1;
-            break;
-        fi
-    done
+    if [[ "${#ZE_PACKAGE_ARCHITECTURES[@]}" -ne 0 ]]; then
+        local found=0
+        for arch in "${ZE_PACKAGE_ARCHITECTURES[@]}" ; do
+            if [[ "$arch" == "$ZE_ARCHITECTURE" ]]; then
+                found=1;
+                break;
+            fi
+        done
 
-    if [[ $found -eq 0 ]]; then
-        return 1
+        if [[ $found -eq 0 ]]; then
+            return 1
+        fi
     fi
 
-    for os in "${ZE_PACKAGE_OPERATING_SYSTEMS[@]}" ; do
-        if [[ "$os" == "$ZE_OPERATING_SYSTEM" ]]; then
-            found=true;
-            break;
-        fi
-    done
+    if [[ "${#ZE_PACKAGE_OPERATING_SYSTEMS[@]}" -ne 0 ]]; then
+        local found=0
+        for os in "${ZE_PACKAGE_OPERATING_SYSTEMS[@]}" ; do
+            if [[ "$os" == "$ZE_OPERATING_SYSTEM" ]]; then
+                found=true;
+                break;
+            fi
+        done
 
-    if [[ $found -eq 0 ]]; then
-        return 1
+        if [[ $found -eq 0 ]]; then
+            return 1
+        fi
     fi
 
     return 0

@@ -162,5 +162,6 @@ function ze_error()
 function ze_critical()
 {
     ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_CRITICAL_ERROR $1
+    set -e
     exit $ZE_FAIL
 }

@@ -40,16 +40,21 @@ function ze_package_configure()
         -DLLVM_INCLUDE_TOOLS:BOOL=ON \
         -DLLVM_INCLUDE_UTILS:BOOL=OFF \
         -DLLVM_INSTALL_TOOLCHAIN_ONLY:BOOL=OFF
+
+    return $?
 }
 
 function ze_package_compile() {
     ze_cmake_build
+    return $?
 }
 
 function ze_package_gather() 
 {
     ze_cmake_install
-    cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/include $ZE_PACKAGE_OUTPUT_DIR
-    cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/lib $ZE_PACKAGE_OUTPUT_DIR
-    rm -rv $ZE_PACKAGE_OUTPUT_DIR/lib/clang
+    ze_exec cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/include $ZE_PACKAGE_OUTPUT_DIR || return $ZE_FAIL
+    ze_exec cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/lib $ZE_PACKAGE_OUTPUT_DIR || return $ZE_FAIL
+    ze_exec rm -rv $ZE_PACKAGE_OUTPUT_DIR/lib/clang || return $ZE_FAIL
+
+    return $ZE_SUCCESS
 }
