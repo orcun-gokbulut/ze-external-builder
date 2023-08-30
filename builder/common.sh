@@ -10,7 +10,3 @@ function ze_exec() {
     eval $@
     return $?
 }
-
-ZE_STATIC_LIBRARY_EXTENSION=".a"
-ZE_DYNAMIC_LIBRARY_EXTENSION=".so"
-ZE_EXECUTIVE_FILE_EXTENSION=""

@@ -23,6 +23,11 @@ function ze_main()
     ze_platform_detect
     ze_arguments_parse $@
     ze_platform_normalize_toolset
+    
+    # Normalize Paths
+    ZE_BUILD_DIR=$(realpath -m "$ZE_BUILD_DIR")
+    ZE_OUTPUT_DIR=$(realpath -m "$ZE_OUTPUT_DIR")
+    ZE_LOG_DIR=$(realpath -m "$ZE_LOG_DIR")
 
     ze_log_initialize
 
@@ -67,12 +72,20 @@ function ze_main()
 
 
     case "$ZE_OPERATION" in
+        build)
+            truncate --size 0 $ZE_MASTER_REGISTRATION_FILE
+            ;;
+
+        register)
+            truncate --size 0 $ZE_MASTER_REGISTRATION_FILE
+            ;;
+
         full-clean)
             ze_info "Clearing everthing..."
-            rm -rfv build
-            rm -rfv log
-            rm -rfv source
-            rm -rfv output
+            rm -rfv "$ZE_BUILD_DIR"
+            rm -rfv "$ZE_LOG_DIR"
+            rm -rfv "$ZE_SOURCE_DIR"
+            rm -rfv "$ZE_OUTPUT_DIR"
             exit $ZE_SUCCESS
             ;;
     esac

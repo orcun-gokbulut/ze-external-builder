@@ -106,6 +106,11 @@ function ze_package_build_default()
         return $ZE_FAIL
     fi
 
+    ze_operation_register
+    if [[ $? -ne 0 ]]; then
+        return $ZE_FAIL
+    fi
+
     return $ZE_SUCCESS
 }
 
@@ -125,7 +130,11 @@ function ze_package_bootstrap_default()
 }
 
 function ze_package_clean_default()
-{ 
+{
+    rm -rfv $ZE_PACKAGE_BUILD_DIR 
+    rm -rfv $ZE_PACKAGE_SOURCE_DIR
+    rm -rfv $ZE_PACKAGE_OUTPUT_DIR
+
     return $ZE_SUCCESS
 }
 
@@ -138,7 +147,15 @@ function ze_package_clone_default()
     local origin_url="$(git remote get-url origin)"
 
     if [[ "$is_inside_work_tree" == "false" || "$origin_url" != "$ZE_PACKAGE_REPOSITORY" ]]; then
-        git clone --depth 1 --recurse-submodules --shallow-submodules --branch "$ZE_PACKAGE_BRANCH" "$ZE_PACKAGE_REPOSITORY" "$ZE_PACKAGE_SOURCE_DIR"
+        git clone \
+            --depth 1 \
+            --recurse-submodules \
+            --shallow-submodules \
+            --branch "$ZE_PACKAGE_BRANCH" \
+            -c 'safe.directory=*' \
+            -c 'advice.detachedHead=false' \
+            "$ZE_PACKAGE_REPOSITORY" \
+            "$ZE_PACKAGE_SOURCE_DIR"
         if [[ $? -ne 0 ]]; then
             ze_error "Cannot clone repository."
             return $ZE_FAIL

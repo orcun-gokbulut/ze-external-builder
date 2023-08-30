@@ -1,5 +1,9 @@
 
 
+ZE_STATIC_LIBRARY_EXTENSION=".a"
+ZE_DYNAMIC_LIBRARY_EXTENSION=".so"
+ZE_EXECUTIVE_FILE_EXTENSION=""
+
 function ze_platform_detect()
 {
     # Operating Systems
@@ -7,22 +11,36 @@ function ze_platform_detect()
         linux*)
             ZE_OPERATING_SYSTEM="linux"
             ZE_TOOLCHAIN="gcc"
+            ZE_STATIC_LIBRARY_EXTENSION=".a"
+            ZE_DYNAMIC_LIBRARY_EXTENSION=".so"
+            ZE_EXECUTIVE_FILE_EXTENSION=""
             ;;
         darwin*)
             ZE_OPERATING_SYSTEM="macosx"
             prefered_toolchain="clang"
+            ZE_STATIC_LIBRARY_EXTENSION=".a"
+            ZE_DYNAMIC_LIBRARY_EXTENSION=".so"
+            ZE_EXECUTIVE_FILE_EXTENSION=""
             ;;
         bsd*)
             ZE_OPERATING_SYSTEM="bsd"
             prefered_toolchain="clang"
+            ZE_STATIC_LIBRARY_EXTENSION=".a"
+            ZE_DYNAMIC_LIBRARY_EXTENSION=".so"
+            ZE_EXECUTIVE_FILE_EXTENSION=""
             ;;
         msys*)
             ZE_OPERATING_SYSTEM="windows"
             prefered_toolchain="gcc"
+            ZE_STATIC_LIBRARY_EXTENSION=".lib"
+            ZE_DYNAMIC_LIBRARY_EXTENSION=".dll"
+            ZE_EXECUTIVE_FILE_EXTENSION=".exe"
             ;;
         cygwin*)
             ZE_OPERATING_SYSTEM="windows"
-            
+            ZE_STATIC_LIBRARY_EXTENSION=".lib"
+            ZE_DYNAMIC_LIBRARY_EXTENSION=".dll"
+            ZE_EXECUTIVE_FILE_EXTENSION=".exe"
             ;;
         *)
             ze_critical "Cannot detect operating system. '$OSTYPE' is unknown/unsupported operating system."
@@ -121,31 +139,34 @@ function ze_platform_normalize_toolset()
             ;;
         "msvc110")
             ZE_COMPILER="msvc"
-            ZE_VERSION="110"
+            ZE_COMPILER_VERSION="110"
             ;;
         "msvc120")
             ZE_COMPILER="msvc"
-            ZE_VERSION="120"
+            ZE_COMPILER_VERSION="120"
             ;;
         "msvc130")
             ZE_COMPILER="msvc"
-            ZE_VERSION="130"
+            ZE_COMPILER_VERSION="130"
             ;;
         "msvc140")
             ZE_COMPILER="msvc"
-            ZE_VERSION="140"
+            ZE_COMPILER_VERSION="140"
             ;;
         "msvc141")
             ZE_COMPILER="msvc"
-            ZE_VERSION="141"
+            ZE_COMPILER_VERSION="141"
             ;;
         "msvc142")
             ZE_COMPILER="msvc"
-            ZE_VERSION="142"
+            ZE_COMPILER_VERSION="142"
             ;;
         "msvc143")
             ZE_COMPILER="msvc"
-            ZE_VERSION="143"
+            ZE_COMPILER_VERSION="143"
+            ;;
+        *)
+            ze_critical "Cannot detect toolchain. '$ZE_TOOLCHAIN' is unknown/unsupported toolchain."
             ;;
     esac
 
@@ -155,37 +176,44 @@ function ze_platform_normalize_toolset()
     if [[ "$ZE_COMPILER" == "msvc" ]]; then
         case "$ZE_COMPILER_VERSION" in
             110)
-                ZE_CMAKE_TOOLCHAIN='--G "Visual Studio 11 2012"'
+                ZE_CMAKE_TOOLCHAIN='-G "Visual Studio 11 2012"'
                 ;;
             120)
-                ZE_CMAKE_TOOLCHAIN='--G "Visual Studio 12 2013"'
+                ZE_CMAKE_TOOLCHAIN='-G "Visual Studio 12 2013"'
                 ;;
             120)
-                ZE_CMAKE_TOOLCHAIN='--G "Visual Studio 14 2015"'
+                ZE_CMAKE_TOOLCHAIN='-G "Visual Studio 14 2015"'
                 ;;
             140)
-                ZE_CMAKE_TOOLCHAIN='--G "Visual Studio 15 2017"'
+                ZE_CMAKE_TOOLCHAIN='-G "Visual Studio 15 2017"'
                 ;;
             141)
-                ZE_CMAKE_TOOLCHAIN='--G "Visual Studio 16 2019"'
+                ZE_CMAKE_TOOLCHAIN='-G "Visual Studio 16 2019"'
                 ;;
             142)
-                ZE_CMAKE_TOOLCHAIN='--G "Visual Studio 17 2022"'
+                ZE_CMAKE_TOOLCHAIN='-G "Visual Studio 17 2022"'
+                ;;
+            *)
+                ze_critical "Unknown Visual Studio version detected. '$ZE_COMPILER_VERSION' is unknown/unsupported version."
                 ;;
         esac
 
         case "$ZE_ARCHITECTURE" in
             "x86")
-                ZE_CMAKE_TOOLCHAIN+=" -A Win32"
+                ZE_CMAKE_TOOLCHAIN="$ZE_CMAKE_TOOLCHAIN -A Win32"
                 ;;
-            "x64") 
-                ZE_CMAKE_TOOLCHAIN+=" -A x64"
+            "x64")
+                echo "asdas $ZE_CMAKE_TOOLCHAIN" 
+                ZE_CMAKE_TOOLCHAIN="$ZE_CMAKE_TOOLCHAIN -A x64"
                 ;;
             "arm")
-                ZE_CMAKE_TOOLCHAIN+=" -A ARM"
+                ZE_CMAKE_TOOLCHAIN="$ZE_CMAKE_TOOLCHAIN -A ARM"
                 ;;
             "arm64")
-                ZE_CMAKE_TOOLCHAIN+=" -A ARM64"
+                ZE_CMAKE_TOOLCHAIN="$ZE_CMAKE_TOOLCHAIN -A ARM64"
+                ;;
+            *)
+                ze_critical "Unknown architecture detected. '$ZE_ARCHITECTURE' is unknown/unsupported architecture."
                 ;;
         esac
     elif [[ "$ZE_COMPILER" == "gcc" ]]; then
@@ -201,6 +229,8 @@ function ze_platform_normalize_toolset()
         local cpp_compiler_path=$(which clang++-$ZE_COMPILER_VERSION)
         ZE_CXX_COMPILER=$(readlink -f $cpp_compiler_path)
     fi
+
+    ZE_PLATFORM="$ZE_OPERATING_SYSTEM-$ZE_ARCHITECTURE-$ZE_TOOLCHAIN"
 }
 
 function ze_platform_check()

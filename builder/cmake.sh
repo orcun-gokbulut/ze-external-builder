@@ -24,12 +24,12 @@ function ze_cmake_configure()
 
 function ze_cmake_build()
 {
-    ze_exec MAKEFLAGS=-j$(nproc) cmake --build $ZE_PACKAGE_BUILD_DIR
+    ze_exec MAKEFLAGS=-j$(nproc) cmake --build $ZE_PACKAGE_BUILD_DIR --config $ZE_PACKAGE_BUILD_TYPE
     return $?
 }
 
 function ze_cmake_install()
 {
-    ze_exec cmake --install $ZE_PACKAGE_BUILD_DIR
+    ze_exec cmake --install $ZE_PACKAGE_BUILD_DIR --config $ZE_PACKAGE_BUILD_TYPE
     return $?
 }

@@ -6,11 +6,12 @@
 
 ZE_SCRIPT_FILENAME="external-builder.sh"
 ZE_BUILD_TYPE="both"
-ZE_SOURCE_DIR="$ZE_ROOT_DIR/source"
-ZE_BUILD_DIR="$ZE_ROOT_DIR/build"
-ZE_OUTPUT_DIR="$ZE_ROOT_DIR/output"
+ZE_SOURCE_DIR="$ZE_ROOT_DIR/Run/Sources"
+ZE_BUILD_DIR="$ZE_ROOT_DIR/Run/Builds"
+ZE_OUTPUT_DIR="$ZE_ROOT_DIR/Run/Output"
+ZE_MASTER_REGISTRATION_FILE="$ZE_OUTPUT_DIR/CMakeLists.txt"
 ZE_LOG_ENABLED=1
-ZE_LOG_DIR="$ZE_ROOT_DIR/log"
+ZE_LOG_DIR="$ZE_ROOT_DIR/Run/Logs"
 ZE_LOG_FILE=""
 ZE_SEPARATE_LOG_FILES=0
 ZE_FILTER_MODE="all"
@@ -72,6 +73,7 @@ function ze_arguments_usage()
     echo "  gather                  Gathers package's compile output and forms into package structure"
     echo "  generate-info           Generates package information files."
     echo "  generate-registration   Generates registration cmake file for registering package with main project build system."
+    echo "  register                Registers package to master registration file."
     echo "  list                    Lists externals."
     echo "  info                    Prints verbose information about externals."
     echo "  full-clean              Deletes all generated or cloned files and directories."
@@ -144,7 +146,7 @@ function ze_arguments_parse()
     eval set -- "$ZE_ARGUMENTS"
     while true ; do
         case "$1" in
-            -o | --operating-system) ZE_PLATFORM="$2" ; shift 2 ;;
+            -o | --operating-system) ZE_OPERATING_SYSTEM="$2" ; shift 2 ;;
             -a | --architecture) ZE_ARCHITECTURE="$2" ; shift 2 ;;
             -t | --toolchain) ZE_TOOLCHAIN="$2" ; shift 2 ;;
             -b | --build-type) ZE_BUILD_TYPE="$2" ; shift 2 ;;
@@ -199,6 +201,7 @@ function ze_arguments_parse()
         [[ "$ZE_OPERATION" != "gather" ]] &&
         [[ "$ZE_OPERATION" != "generate-info" ]] &&
         [[ "$ZE_OPERATION" != "generate-registration" ]] &&
+        [[ "$ZE_OPERATION" != "register" ]] &&
         [[ "$ZE_OPERATION" != "list" ]] &&
         [[ "$ZE_OPERATION" != "info" ]] &&
         [[ "$ZE_OPERATION" != "full-clean" ]] &&
@@ -223,11 +226,4 @@ function ze_arguments_parse()
         echo ""
         echo ""
     fi
-
-    ZE_PLATFORM="$ZE_OPERATING_SYSTEM-$ZE_ARCHITECTURE-$ZE_TOOLCHAIN"
-
-    # Normalize Paths
-    ZE_BUILD_DIR=$(realpath -m "$ZE_BUILD_DIR")
-    ZE_OUTPUT_DIR=$(realpath -m "$ZE_OUTPUT_DIR")
-    ZE_LOG_DIR=$(realpath -m "$ZE_LOG_DIR")
 }
