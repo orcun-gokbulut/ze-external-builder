@@ -15,9 +15,9 @@ ZE_PACKAGE_BRANCH="llvmorg-3.6.2"
 function ze_package_configure() 
 {    
     ze_cmake_configure \
-        -S $ZE_PACKAGE_SOURCE_DIR/llvm \
+        -S "$ZE_PACKAGE_SOURCE_DIR/llvm" \
         -DLLVM_EXTERNAL_CLANG_BUILD:BOOL=ON \
-        -DLLVM_EXTERNAL_CLANG_SOURCE_DIR:PATH=$ZE_PACKAGE_SOURCE_DIR/clang \
+        -DLLVM_EXTERNAL_CLANG_SOURCE_DIR:PATH="$ZE_PACKAGE_SOURCE_DIR/clang" \
         -DBUILD_CLANG_FORMAT_VS_PLUGIN:BOOL=OFF \
         -DBUILD_SHARED_LIBS:BOOL=OFF \
         -DCLANG_BUILD_EXAMPLES:BOOL=OFF \
@@ -52,9 +52,9 @@ function ze_package_compile() {
 function ze_package_gather() 
 {
     ze_cmake_install
-    ze_exec cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/include $ZE_PACKAGE_OUTPUT_DIR || return $ZE_FAIL
-    ze_exec cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/lib $ZE_PACKAGE_OUTPUT_DIR || return $ZE_FAIL
-    ze_exec rm -rv $ZE_PACKAGE_OUTPUT_DIR/lib/clang || return $ZE_FAIL
+    ze_exec cp -rv "$ZE_PACKAGE_BUILD_DIR/ze_build_install/include" "$ZE_PACKAGE_OUTPUT_DIR" || return $ZE_FAIL
+    ze_exec cp -rv "$ZE_PACKAGE_BUILD_DIR/ze_build_install/lib" "$ZE_PACKAGE_OUTPUT_DIR" || return $ZE_FAIL
+    ze_exec rm -rv "$ZE_PACKAGE_OUTPUT_DIR/lib/clang" || return $ZE_FAIL
 
     return $ZE_SUCCESS
 }

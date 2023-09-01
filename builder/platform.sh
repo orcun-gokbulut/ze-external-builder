@@ -1,4 +1,7 @@
+#!/bin/bash
 
+# Copyright (C) 2022 Y. Orçun GÖKBULUT <orcun.gokbulut@gmail.com>
+# All rights reserved. 
 
 ZE_STATIC_LIBRARY_EXTENSION=".a"
 ZE_DYNAMIC_LIBRARY_EXTENSION=".so"
@@ -217,17 +220,17 @@ function ze_platform_normalize_toolset()
                 ;;
         esac
     elif [[ "$ZE_COMPILER" == "gcc" ]]; then
-        local c_compiler_path=$(which gcc-$ZE_COMPILER_VERSION)
-        ZE_C_COMPILER=$(readlink -f $c_compiler_path)
+        local c_compiler_path=$(which "gcc-$ZE_COMPILER_VERSION")
+        ZE_C_COMPILER=$(readlink -f "$c_compiler_path")
 
-        local cpp_compiler_path=$(which g++-$ZE_COMPILER_VERSION)
-        ZE_CXX_COMPILER=$(readlink -f $cpp_compiler_path)
+        local cpp_compiler_path=$(which "g++-$ZE_COMPILER_VERSION")
+        ZE_CXX_COMPILER=$(readlink -f "$cpp_compiler_path")
     elif [[ "$ZE_COMPILER" == "clang" ]]; then
-        local c_compiler_path=$(which clang-$ZE_COMPILER_VERSION)
-        ZE_C_COMPILER=$(readlink -f $c_compiler_path)
+        local c_compiler_path=$(which "clang-$ZE_COMPILER_VERSION")
+        ZE_C_COMPILER=$(readlink -f "$c_compiler_path")
 
-        local cpp_compiler_path=$(which clang++-$ZE_COMPILER_VERSION)
-        ZE_CXX_COMPILER=$(readlink -f $cpp_compiler_path)
+        local cpp_compiler_path=$(which "clang++-$ZE_COMPILER_VERSION")
+        ZE_CXX_COMPILER=$(readlink -f "$cpp_compiler_path")
     fi
 
     ZE_PLATFORM="$ZE_OPERATING_SYSTEM-$ZE_ARCHITECTURE-$ZE_TOOLCHAIN"

@@ -3,7 +3,6 @@
 # Copyright (C) 2022 Y. Orçun GÖKBULUT <orcun.gokbulut@gmail.com>
 # All rights reserved. 
 
-
 ZE_PACKAGES_ROOT_PATH="$ZE_ROOT_DIR/packages"
 
 function ze_package_reset()
@@ -26,16 +25,17 @@ function ze_package_reset()
     ZE_PACKAGE_REGISTRATION_FILE=""
     ZE_PACKAGE_LOG_FILE=""
     ZE_PACKAGE_DEPENDENCIES=()
+    ZE_PACKAGE_LAST_OPERATION=""
 
-    eval "function ze_package_check() { ze_package_check_default ; return $? ; }"
-    eval "function ze_package_bootstrap() { ze_package_bootstrap_default ; return $? ; }"
-    eval "function ze_package_build() { ze_package_build_default ; return $? ; }"
-    eval "function ze_package_clone() { ze_package_clone_default ; return $? ; }"
-    eval "function ze_package_clean() { ze_package_clean_default ; return $? ; }"
-    eval "function ze_package_configure() { ze_package_configure_default ; return $? ; }"
-    eval "function ze_package_compile() { ze_package_compile_default ; return $? ; }"
-    eval "function ze_package_gather() { ze_package_gather_default ; return $? ; }"
-    eval "function ze_package_generate_registration() { ze_package_generate_registration_default ; return $? ; }"
+    eval "function ze_package_check() { ze_package_check_default || return $ZE_FAIL ; }"
+    eval "function ze_package_bootstrap() { ze_package_bootstrap_default|| return $ZE_FAIL ; }"
+    eval "function ze_package_build() { ze_package_build_default || return $ZE_FAIL ; }"
+    eval "function ze_package_clone() { ze_package_clone_default || return $ZE_FAIL ; }"
+    eval "function ze_package_clean() { ze_package_clean_default || return $ZE_FAIL ; }"
+    eval "function ze_package_configure() { ze_package_configure_default || return $ZE_FAIL ; }"
+    eval "function ze_package_compile() { ze_package_compile_default || return $ZE_FAIL ; }"
+    eval "function ze_package_gather() { ze_package_gather_default || return $ZE_FAIL ; }"
+    eval "function ze_package_generate_registration() { ze_package_generate_registration_default || return $ZE_FAIL ; }"
     
     ZE_MODULE_NAME="Core"
 }
@@ -82,9 +82,9 @@ function ze_package_process_unit()
 
     if [[ $ZE_VERBOSE -ne 0 ]]; then
         ze_operation_route 2>&1 | tee -a "$ZE_PACKAGE_LOG_FILE"
-        return $?
+        return ${PIPESTATUS[0]}
     else
-        ze_operation_route 2>&1 >> "$ZE_PACKAGE_LOG_FILE"
+        ze_operation_route >> "$ZE_PACKAGE_LOG_FILE" 2>&1 
         return $?
     fi
 }
@@ -118,50 +118,76 @@ function ze_package_filter()
 
 function ze_package_process() 
 {
-    local result_sum=0
+    local general_result=0
+    local package_result=0
 
-    for file in $ZE_PACKAGES_ROOT_DIR/*.sh ; do
+    for file in "$ZE_PACKAGES_ROOT_DIR"/*.sh ; do
         if [[ -d $file ]]; then
             continue
         fi
 
-        local package_name=$(basename -s ".sh" $file)
+        local package_name="$(basename -s ".sh" $file)"
         
-        ze_package_filter $package_name
+        ze_package_filter "$package_name"
         if [[ $? -ne $ZE_SUCCESS ]]; then
             continue
         fi
 
         ze_package_load "$package_name"
-        if [[ $? -ne 0 ]]; then
-            if [[ $ZE_STOP_ON_ERROR -eq 0 ]]; then
-                exit $ZE_FAIL
+        package_result=$?
+        if [[ $package_result -ne 0 ]]; then
+            ZE_PROCESSED_PACKAGES+=("$package_name")
+            ZE_PROCESSED_PACKAGE_RESULTS+=("Failure (Load)")
+
+            if [[ $ZE_STOP_ON_ERROR -ne 0 ]]; then
+                return $ZE_FAIL
             fi
 
-            ze_package_reset
-            return $ZE_FAIL
+            continue
         fi
 
         if [[ $ZE_PACKAGE_ENABLED -eq 0 ]]; then
             ze_detail "Skipping disabled package $ZE_PACKAGE_NAME."
-            return $ZE_SUCCESS
+            continue
         fi
 
+        ze_info "Processing package '$ZE_PACKAGE_NAME'..."
+        ZE_PROCESSED_PACKAGES+=("$package_name")
+
         ze_operation_exec_check
-        if [[ $? -ne 0 ]]; then
+        package_result=$?
+        if [[ $package_result -eq $ZE_SKIP ]]; then
             ze_detail "Package check with current configuration has been failed. Skipping package."
-            return $ZE_SUCCESS
+            continue
+        elif [[ $package_result -ne 0 ]]; then
+            ze_error "Package check with current configuration has been failed."                  
+            ZE_PROCESSED_PACKAGE_RESULTS+=("Failure (Check)")
+            general_result=1
+
+            if [[ $ZE_STOP_ON_ERROR -ne 0 ]]; then
+                ze_package_reset
+                return $ZE_FAIL
+            fi
         fi
         
-        ze_info "Processing package '$ZE_PACKAGE_NAME'..."
         ze_package_process_unit
-        if [[ $? -ne 0 ]]; then
-            ze_info "Processing package '$package_name' has been failed."
-            result_sum=1
-        else
-            ze_info "Package '$package_name' has been processed succesfully."
-        fi
+        package_result=$?
+        if [[ $package_result -ne 0 ]]; then
+            ze_error "Processing package '$ZE_PACKAGE_NAME' has been failed."
+            ZE_PROCESSED_PACKAGE_RESULTS+=("Failure ($ZE_PACKAGE_LAST_OPERATION)")
+            general_result=1
+
+            if [[ $ZE_STOP_ON_ERROR -ne 0 ]]; then
+                ze_package_reset
+                return $ZE_FAIL
+            fi
+        fi        
+
+        ze_info "Package '$ZE_PACKAGE_NAME' has been processed succesfully."
+        ZE_PROCESSED_PACKAGE_RESULTS+=("Success")
     done
+
+    ze_package_reset
     
-    exit $result_sum
+    return $general_result
 }

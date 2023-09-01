@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Copyright (C) 2022 Y. Orçun GÖKBULUT <orcun.gokbulut@gmail.com>
 # All rights reserved. 
 

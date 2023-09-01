@@ -29,10 +29,10 @@ function ze_package_compile() {
 function ze_package_gather() 
 {
     ze_cmake_install || return $ZE_FAIL
-    rm -rfv $ZE_PACKAGE_BUILD_DIR/ze_build_install/lib/cmake || return $ZE_FAIL
-    rm -rfv $ZE_PACKAGE_BUILD_DIR/ze_build_install/lib/pkgconfig || return $ZE_FAIL
-    cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/include $ZE_PACKAGE_OUTPUT_DIR || return $ZE_FAIL
-    cp -rv $ZE_PACKAGE_BUILD_DIR/ze_build_install/lib $ZE_PACKAGE_OUTPUT_DIR || return $ZE_FAIL
+    rm -rfv "$ZE_PACKAGE_BUILD_DIR/ze_build_install/lib/cmake" || return $ZE_FAIL
+    rm -rfv "$ZE_PACKAGE_BUILD_DIR/ze_build_install/lib/pkgconfig" || return $ZE_FAIL
+    cp -rv "$ZE_PACKAGE_BUILD_DIR/ze_build_install/include" "$ZE_PACKAGE_OUTPUT_DIR" || return $ZE_FAIL
+    cp -rv "$ZE_PACKAGE_BUILD_DIR/ze_build_install/lib" "$ZE_PACKAGE_OUTPUT_DIR" || return $ZE_FAIL
 
     return $ZE_SUCCESS
 }

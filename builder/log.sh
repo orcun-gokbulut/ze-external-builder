@@ -3,9 +3,10 @@
 # Copyright (C) 2022 Y. Orçun GÖKBULUT <orcun.gokbulut@gmail.com>
 # All rights reserved. 
 
-
 declare -r ZE_SUCCESS=0
 declare -r ZE_FAIL=1
+declare -r ZE_SKIP=2
+
 
 declare -r ZE_LOG_LEVEL_DEBUG=0
 declare -r ZE_LOG_LEVEL_DETAIL=1
@@ -14,7 +15,6 @@ declare -r ZE_LOG_LEVEL_IMPORTANT=3
 declare -r ZE_LOG_LEVEL_WARNING=4
 declare -r ZE_LOG_LEVEL_ERROR=5
 declare -r ZE_LOG_LEVEL_CRITICAL_ERROR=6
-
 
 function ze_log_initialize()
 {
@@ -40,7 +40,7 @@ function ze_output()
         return
     fi
 
-    echo $1
+    echo "$1"
 }
 
 function ze_output_v()
@@ -50,12 +50,12 @@ function ze_output_v()
         return
     fi
     
-    echo $1
+    echo "$1"
 }
 
 function ze_output_q()
 {
-    echo $1
+    echo "$1"
 }
 
 function ze_message()
@@ -122,7 +122,7 @@ function ze_debug()
         return;
     fi
 
-    ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_DEBUG $1
+    ze_message "$ZE_MODULE_NAME" $ZE_LOG_LEVEL_DEBUG $1
 }
 
 function ze_detail()
@@ -132,7 +132,7 @@ function ze_detail()
         return
     fi
 
-    ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_DETAIL $1
+    ze_message "$ZE_MODULE_NAME" $ZE_LOG_LEVEL_DETAIL $1
 }
 
 function ze_info()
@@ -141,27 +141,27 @@ function ze_info()
         return
     fi
 
-    ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_INFO $1
+    ze_message "$ZE_MODULE_NAME" $ZE_LOG_LEVEL_INFO $1
 }
 
 function ze_important()
 {
-    ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_IMPORTANT $1
+    ze_message "$ZE_MODULE_NAME" $ZE_LOG_LEVEL_IMPORTANT $1
 }
 
 function ze_warning()
 {
-    ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_WARNING $1
+    ze_message "$ZE_MODULE_NAME" $ZE_LOG_LEVEL_WARNING $1
 }
 
 function ze_error()
 {
-    ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_ERROR $1
+    ze_message "$ZE_MODULE_NAME" $ZE_LOG_LEVEL_ERROR $1
 }
 
 function ze_critical()
 {
-    ze_message $ZE_MODULE_NAME $ZE_LOG_LEVEL_CRITICAL_ERROR $1
+    ze_message "$ZE_MODULE_NAME" $ZE_LOG_LEVEL_CRITICAL_ERROR $1
     set -e
     exit $ZE_FAIL
 }

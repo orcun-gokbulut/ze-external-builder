@@ -1,4 +1,7 @@
+#!/bin/bash
 
+# Copyright (C) 2022 Y. Orçun GÖKBULUT <orcun.gokbulut@gmail.com>
+# All rights reserved. 
 
 function ze_operation_info()
 {
@@ -50,12 +53,16 @@ function ze_operation_info()
 
 function ze_operation_exec_check()
 {
+    ZE_PACKAGE_LAST_OPERATION="Check $ZE_PACKAGE_BUILD_TYPE"
+
     ze_package_check
     return $?
 }
 
 function ze_operation_exec_bootstrap()
 {
+    ZE_PACKAGE_LAST_OPERATION="Bootstrap $ZE_PACKAGE_BUILD_TYPE"
+
     ze_info "Bootstraping $ZE_PACKAGE_NAME..."
 
     ze_package_bootstrap
@@ -71,9 +78,11 @@ function ze_operation_exec_bootstrap()
 
 function ze_operation_exec_clone()
 {
+    ZE_PACKAGE_LAST_OPERATION="Clone $ZE_PACKAGE_BUILD_TYPE"
+
     ze_info "Cloning package '$ZE_PACKAGE_NAME'."
 
-    mkdir -p $ZE_PACKAGE_SOURCE_DIR
+    mkdir -p "$ZE_PACKAGE_SOURCE_DIR"
 
     ze_package_clone
     if [[ $? -ne 0 ]]; then
@@ -94,6 +103,8 @@ function ze_operation_exec_build()
 
 function ze_operation_exec_clean()
 {
+    ZE_PACKAGE_LAST_OPERATION="Clean $ZE_PACKAGE_BUILD_TYPE"
+
     ze_info "Cleaning package $ZE_PACKAGE_NAME..."
 
     ze_package_clean
@@ -110,9 +121,10 @@ function ze_operation_exec_clean()
     return $ZE_SUCCESS
 }
 
-
 function ze_operation_exec_configure()
 {
+    ZE_PACKAGE_LAST_OPERATION="Configure $ZE_PACKAGE_BUILD_TYPE"
+
     ze_info "Configuring package '$ZE_PACKAGE_NAME'..."
 
     mkdir -p "$ZE_PACKAGE_BUILD_DIR"
@@ -131,6 +143,8 @@ function ze_operation_exec_configure()
 
 function ze_operation_exec_compile()
 {
+    ZE_PACKAGE_LAST_OPERATION="Compile $ZE_PACKAGE_BUILD_TYPE"
+
     ze_info "Compiling package '$ZE_PACKAGE_NAME'..."
 
     mkdir -p "$ZE_PACKAGE_BUILD_DIR"
@@ -150,6 +164,8 @@ function ze_operation_exec_compile()
 
 function ze_operation_exec_gather()
 {
+    ZE_PACKAGE_LAST_OPERATION="Gather $ZE_PACKAGE_BUILD_TYPE"
+
     ze_info "Gathering output of package '$ZE_PACKAGE_NAME'..."
 
     mkdir -p "$ZE_PACKAGE_OUTPUT_DIR"
@@ -169,6 +185,8 @@ function ze_operation_exec_gather()
 
 function ze_operation_exec_generate_package_info()
 {
+    ZE_PACKAGE_LAST_OPERATION="Generate Info $ZE_PACKAGE_BUILD_TYPE"
+
     ze_info "Generating package information of package '$ZE_PACKAGE_NAME'..."
 
     mkdir -p "$ZE_PACKAGE_OUTPUT_DIR"
@@ -183,6 +201,8 @@ function ze_operation_exec_generate_package_info()
 
 function ze_operation_exec_generate_registration()
 {
+    ZE_PACKAGE_LAST_OPERATION="Generate Registration $ZE_PACKAGE_BUILD_TYPE"
+
     ze_info "Generating registeration of package '$ZE_PACKAGE_NAME'..."
 
     mkdir -p "$ZE_PACKAGE_OUTPUT_DIR"
@@ -195,42 +215,48 @@ function ze_operation_exec_generate_registration()
 
 function ze_operation_exec_list()
 {
+    ZE_PACKAGE_LAST_OPERATION="List $ZE_PACKAGE_BUILD_TYPE"
+
     ze_output "$ZE_PACKAGE_NAME"
     return $ZE_SUCCESS
 }
 
 function ze_operation_register()
 {
+    ZE_PACKAGE_LAST_OPERATION="Register"
+
     ze_info "Generating adding package '$ZE_PACKAGE_NAME' to master registration..."
 
     echo "add_subdirectory($ZE_PACKAGE_NAME)" >> $ZE_MASTER_REGISTRATION_FILE
     
     ze_info "Package '$ZE_PACKAGE_NAME' has been succefully added to master registration master registrtraion."
+    
+    return $ZE_SUCCESS
 }
 
 function ze_operation_route_build_internal()
 {
-    local result=""
+    local operation_result=0
     case "$ZE_OPERATION" in
         build)
             ze_operation_exec_build
-            result=$1
+            operation_result=$?
             ;;
         clean)
             ze_operation_exec_clean
-            result=$?
+            operation_result=$?
             ;;
         configure)
             ze_operation_exec_configure
-            result=$?
+            operation_result=$?
             ;;
         compile)
             ze_operation_exec_compile
-            result=$?
+            operation_result=$?
             ;;
         gather)
             ze_operation_exec_gather
-            result=$?
+            operation_result=$?
             ;;
         *)
             ze_critical "Unknown operation. Operation name: '$ZE_OPERATION'"
@@ -238,14 +264,16 @@ function ze_operation_route_build_internal()
             ;;
     esac
 
-    if [[ $result -ne 0 && $ZE_STOP_ON_ERROR -ne 0 ]]; then
-        exit $ZE_FAIL
+    if [[ $operation_result -ne 0 && $ZE_STOP_ON_ERROR -ne 0 ]]; then
+        return $ZE_FAIL
     fi
 }
 
 function ze_operation_route_build()
-{
-    package_result=0
+{   
+    local build_result=0
+    local package_result=0
+    
     if [[ $ZE_PACKAGE_TYPE == "universal" ]]; then
         # UNIVERSAL BUILD
         ZE_PACKAGE_BUILD_TYPE=""
@@ -254,6 +282,15 @@ function ze_operation_route_build()
         
         ze_operation_route_build_internal
         package_result=$?
+        if [[ $package_result -ne 0 ]]; then
+            ze_info "Processing package '$ZE_PACKAGE_NAME' has been failed."
+
+            if [[ $ZE_STOP_ON_ERROR -ne 0 ]]; then
+                return $ZE_FAIL
+            fi
+        else
+            ze_info "Package '$ZE_PACKAGE_NAME' has been processed succesfully."
+        fi
     else
         if [[ $ZE_BUILD_TYPE == "both" ]]; then
             # RELEASE BUILD
@@ -263,37 +300,42 @@ function ze_operation_route_build()
             ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME/$ZE_PACKAGE_BUILD_TYPE"
 
             ze_operation_route_build_internal
-            package_result=$?
+            build_result=$?
 
-            if [[ $package_result -ne 0 ]]; then
+            if [[ $build_result -ne 0 ]]; then
                 ze_info "Processing package '$ZE_PACKAGE_NAME' in release configuration has been failed."
+
                 package_result=1
+                if [[ $ZE_STOP_ON_ERROR -ne 0 ]]; then
+                    return $ZE_FAIL
+                fi
             else
                 ze_info "Package '$ZE_PACKAGE_NAME' in release configuration has been processed succesfully."
             fi
 
+            #DEBUG BUILD
+            ze_info "Processing package '$ZE_PACKAGE_NAME' in debug configuration..."
+            ZE_PACKAGE_BUILD_TYPE="debug"           
+            ZE_PACKAGE_BUILD_DIR="$ZE_BUILD_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME/$ZE_PACKAGE_BUILD_TYPE"
+            ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME/$ZE_PACKAGE_BUILD_TYPE"
 
-            if [[ $package_result -eq 0 || $ZE_STOP_ON_ERROR -ne 0 ]]; then
-                #DEBUG BUILD
-                ze_info "Processing package '$ZE_PACKAGE_NAME' in debug configuration..."
-                ZE_PACKAGE_BUILD_TYPE="debug"           
-                ZE_PACKAGE_BUILD_DIR="$ZE_BUILD_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME/$ZE_PACKAGE_BUILD_TYPE"
-                ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME/$ZE_PACKAGE_BUILD_TYPE"
+            ze_operation_route_build_internal
+            build_result=$?
 
-                ze_operation_route_build_internal
-                package_result=$?
-
-                if [[ $package_result -ne 0 ]]; then
-                    ze_info "Processing package '$ZE_PACKAGE_NAME' in debug configuration has been failed."
-                    package_result=1
-                else
-                    ze_info "Package '$ZE_PACKAGE_NAME' in debug configuration has been processed succesfully."
+            if [[ $build_result -ne 0 ]]; then
+                ze_info "Processing package '$ZE_PACKAGE_NAME' in debug configuration has been failed."
+                
+                package_result=1
+                if [[ $ZE_STOP_ON_ERROR -ne 0 ]]; then
+                    return $ZE_FAIL
                 fi
-
-                ZE_PACKAGE_BUILD_TYPE=""
-                ZE_PACKAGE_BUILD_DIR="$ZE_BUILD_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME"
-                ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME"
+            else
+                ze_info "Package '$ZE_PACKAGE_NAME' in debug configuration has been processed succesfully."
             fi
+
+            ZE_PACKAGE_BUILD_TYPE=""
+            ZE_PACKAGE_BUILD_DIR="$ZE_BUILD_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME"
+            ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME"
         else
             # SELECTIVE BUILD
             ZE_PACKAGE_BUILD_TYPE="$ZE_BUILD_TYPE"
@@ -301,8 +343,19 @@ function ze_operation_route_build()
             ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME/$ZE_PACKAGE_BUILD_TYPE"
 
             ze_operation_route_build_internal
-            package_result=$?
-            
+            build_result=$?
+
+            if [[ $build_result -ne 0 ]]; then
+                ze_info "Processing package '$ZE_PACKAGE_NAME' in $ZE_PACKAGE_BUILD_TYPE configuration has been failed."
+                
+                package_result=1
+                if [[ $ZE_STOP_ON_ERROR -ne 0 ]]; then
+                    return $ZE_FAIL
+                fi
+            else
+                ze_info "Package '$ZE_PACKAGE_NAME' in $ZE_PACKAGE_BUILD_TYPE configuration has been processed succesfully."
+            fi
+
             ZE_PACKAGE_BUILD_TYPE=""
             ZE_PACKAGE_BUILD_DIR="$ZE_BUILD_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME"
             ZE_PACKAGE_OUTPUT_DIR="$ZE_OUTPUT_DIR/$ZE_PLATFORM/$ZE_PACKAGE_NAME"
@@ -314,55 +367,55 @@ function ze_operation_route_build()
 
 function ze_operation_route()
 {
-    local result=""
+    local operation_result=0
     case "$ZE_OPERATION" in
         bootstrap)
             ze_operation_exec_bootstrap
-            result=$?
+            operation_result=$?
             ;;
         clone)
             ze_operation_exec_clone
-            result=$?
+            operation_result=$?
             ;;
         generate-info)
             ze_operation_exec_generate_package_info
-            result=$?
+            operation_result=$?
             ;;
         generate-registration)
             ze_operation_exec_generate_registration
-            result=$?
+            operation_result=$?
             ;;
         list)
             ze_operation_exec_list
-            result=$?
+            operation_result=$?
             ;;
         info)
             local verbose_old=$ZE_VERBOSE
             ZE_VERBOSE=1
             ze_operation_info
-            result=$?            
+            operation_result=$?            
             ZE_VERBOSE=$verbose_old
             ;;
         none)
             ze_info "Traversing external $ZE_PACKAGE_NAME."
-            result=0
+            operation_result=0
             ;;
         build)
-            ze_operation_route_build || return $ZE_FAIL
-            ze_operation_exec_generate_package_info || return $ZE_FAIL
-            ze_operation_exec_generate_registration || return $ZE_FAIL
+            ze_operation_route_build && \
+            ze_operation_exec_generate_package_info && \
+            ze_operation_exec_generate_registration
+            operation_result=$?
             ;;
         register)
             ze_operation_register
+            operation_result=$?
             ;;
         *)
             ze_operation_route_build
-            result=$?
+            operation_result=$?
             ;;
 
     esac
 
-    if [[ $result -ne 0 && $ZE_STOP_ON_ERROR -eq 0 ]]; then
-        exit $ZE_FAIL
-    fi
+    return $operation_result
 }

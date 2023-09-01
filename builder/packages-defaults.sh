@@ -118,7 +118,7 @@ function ze_package_check_default()
 { 
     ze_platform_check
     if [[ $? -ne 0 ]]; then
-        return $ZE_FAIL
+        return $ZE_SKIP
     fi
 
     return $ZE_SUCCESS
@@ -131,17 +131,17 @@ function ze_package_bootstrap_default()
 
 function ze_package_clean_default()
 {
-    rm -rfv $ZE_PACKAGE_BUILD_DIR 
-    rm -rfv $ZE_PACKAGE_SOURCE_DIR
-    rm -rfv $ZE_PACKAGE_OUTPUT_DIR
+    rm -rfv "$ZE_PACKAGE_BUILD_DIR"
+    rm -rfv "$ZE_PACKAGE_SOURCE_DIR"
+    rm -rfv "$ZE_PACKAGE_OUTPUT_DIR"
 
     return $ZE_SUCCESS
 }
 
 function ze_package_clone_default() 
 {
-    mkdir -p $ZE_PACKAGE_SOURCE_DIR
-    cd $ZE_PACKAGE_SOURCE_DIR
+    mkdir -p "$ZE_PACKAGE_SOURCE_DIR"
+    cd "$ZE_PACKAGE_SOURCE_DIR"
 
     local is_inside_work_tree="$(git rev-parse --is-inside-work-tree)"
     local origin_url="$(git remote get-url origin)"

@@ -3,7 +3,6 @@
 # Copyright (C) 2022 Y. Orçun GÖKBULUT <orcun.gokbulut@gmail.com>
 # All rights reserved. 
 
-
 ZE_SCRIPT_FILENAME="external-builder.sh"
 ZE_BUILD_TYPE="both"
 ZE_SOURCE_DIR="$ZE_ROOT_DIR/Run/Sources"
@@ -21,6 +20,8 @@ ZE_QUIET=0
 ZE_VERBOSE=0
 ZE_STOP_ON_ERROR=0
 ZE_OPERATION="compile"
+ZE_PROCESSED_PACKAGES=()
+ZE_PROCESSED_PACKAGE_RESULTS=()
 
 function ze_arguments_error()
 {
@@ -188,7 +189,7 @@ function ze_arguments_parse()
         ZE_FILTER_MODE=ALL
     fi
 
-    if [[ $ZE_SEPARATE_LOG_FILES -ne 0 ]] && [[ "$ZE_LOG_FILER" != "" ]]; then
+    if [[ $ZE_SEPARATE_LOG_FILES -ne 0 ]] && [[ "$ZE_LOG_FILE" != "" ]]; then
         ze_arguments_error "--seperate-log-files and --log-file options cannot be used at the same time."
     fi
 

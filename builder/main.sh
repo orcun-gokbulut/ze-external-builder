@@ -68,6 +68,7 @@ function ze_main()
     ze_detail "ZE_QUIET =  $ZE_QUIET"
     ze_detail "ZE_VERBOSE = $ZE_VERBOSE"
     ze_detail "ZE_DEBUG = $ZE_DEBUG"
+    ze_detail "ZE_STOP_ON_ERROR = $ZE_STOP_ON_ERROR"
     ze_detail "ZE_OPERATION = $ZE_OPERATION"
 
 
@@ -90,7 +91,19 @@ function ze_main()
             ;;
     esac
 
+    local process_result=0
+    ze_package_reset
     ze_package_process
-    local result=$?
-    exit $result
+    process_result=$?
+ 
+    ze_output " Package                      Result"
+    ze_output "-------------------------------------------"
+    for i in "${!ZE_PROCESSED_PACKAGES[@]}" ; do
+        local packageName="${ZE_PROCESSED_PACKAGES[$i]}"
+        local packageResult="${ZE_PROCESSED_PACKAGE_RESULTS[$i]}"
+        printf -v output_row ' % -2d %-25s %-15s' $((i + 1)) "$packageName" "$packageResult"
+        ze_output "$output_row"
+    done
+
+    exit $process_result
 }
