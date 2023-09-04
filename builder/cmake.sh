@@ -10,6 +10,7 @@ function ze_cmake_configure()
         compiler_override="CC=$ZE_C_COMPILER CXX=$ZE_CXX_COMPILER"
     fi
 
+    mkdir -p "$ZE_PACKAGE_SOURCE_DIR"
     ze_exec $compiler_override cmake \
         -Wno-dev \
         -S "$ZE_PACKAGE_SOURCE_DIR" \

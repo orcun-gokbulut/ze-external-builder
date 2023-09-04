@@ -28,6 +28,7 @@ function ze_main()
     ZE_BUILD_DIR=$(realpath -m "$ZE_BUILD_DIR")
     ZE_OUTPUT_DIR=$(realpath -m "$ZE_OUTPUT_DIR")
     ZE_LOG_DIR=$(realpath -m "$ZE_LOG_DIR")
+    ZE_MASTER_REGISTRATION_FILE="$ZE_OUTPUT_DIR/$ZE_PLATFORM/CMakeLists.txt"
 
     ze_log_initialize
 

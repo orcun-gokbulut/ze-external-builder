@@ -225,8 +225,9 @@ function ze_operation_register()
 {
     ZE_PACKAGE_LAST_OPERATION="Register"
 
-    ze_info "Generating adding package '$ZE_PACKAGE_NAME' to master registration..."
+    ze_info "Adding package '$ZE_PACKAGE_NAME' to master registration..."
 
+    mkdir -p "$ZE_PACKAGE_OUTPUT_DIR\$ZE_PLATFORM"
     echo "add_subdirectory($ZE_PACKAGE_NAME)" >> $ZE_MASTER_REGISTRATION_FILE
     
     ze_info "Package '$ZE_PACKAGE_NAME' has been succefully added to master registration master registrtraion."
